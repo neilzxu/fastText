@@ -85,7 +85,7 @@ class OneVsAllLoss : public BinaryLogisticLoss {
 class NegativeSamplingLoss : public BinaryLogisticLoss {
  protected:
   static const int32_t NEGATIVE_TABLE_SIZE = 10000000;
-
+  const
   int neg_;
   std::vector<int32_t> negatives_;
   std::uniform_int_distribution<size_t> uniform_;
@@ -104,6 +104,25 @@ class NegativeSamplingLoss : public BinaryLogisticLoss {
       Model::State& state,
       real lr,
       bool backprop) override;
+};
+
+class WeightedNegativeSamplingLoss: public NegativeSamplingLoss {
+  protected:
+    std::vector<real> cw_;
+  explicit WeightedNegativeSamplingLoss(
+      std::shared_ptr<Matrix>& wo,
+      std::vector<real> cw,
+      int neg,
+      const std::vector<int64_t>& targetCounts);
+  ~WeightedNegativeSamplingLoss() noexcept override = default;
+
+  real forward(
+      const std::vector<int32_t>& targets,
+      int32_t targetIndex,
+      Model::State& state,
+      real lr,
+      bool backprop) override;
+
 };
 
 class HierarchicalSoftmaxLoss : public BinaryLogisticLoss {

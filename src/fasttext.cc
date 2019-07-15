@@ -38,6 +38,9 @@ std::shared_ptr<Loss> FastText::createLoss(std::shared_ptr<Matrix>& output) {
     case loss_name::ns:
       return std::make_shared<NegativeSamplingLoss>(
           output, args_->neg, getTargetCounts());
+    case loss_name::wns:
+      return std::make_shared<WeightedNegativeSamplingLoss>(
+          output, args_->neg, getTargetCounts());
     case loss_name::softmax:
       return std::make_shared<SoftmaxLoss>(output);
     case loss_name::ova:

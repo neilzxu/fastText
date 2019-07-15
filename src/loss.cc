@@ -1,8 +1,7 @@
 /**
  * Copyright (c) 2016-present, Facebook, Inc.
  * All rights reserved.
- *
- * This source code is licensed under the MIT license found in the
+ * * This source code is licensed under the MIT license found in the
  * LICENSE file in the root directory of this source tree.
  */
 
@@ -187,6 +186,33 @@ int32_t NegativeSamplingLoss::getNegative(
     negative = negatives_[uniform_(rng)];
   } while (target == negative);
   return negative;
+}
+
+WeightedNegativeSamplingLoss::WeightedNegativeSamplingLoss(
+    std::shared_ptr<Matrix>& wo,
+    std::vector<real> cw,
+    int neg,
+    const std::vector<int64_t>& targetCounts)
+    : NegativeSamplingLoss(wo, neg, targetCounts), cw_(cw) {
+    cw_.resize(targetCounts);
+    }
+
+real WeightedNegativeSamplingLoss::forward(
+    const std::vector<int32_t>& targets,
+    int32_t targetIndex,
+    Model::State& state,
+    real lr,
+    bool backprop) {
+  assert(targetIndex >= 0);
+  assert(targetIndex < targets.size());
+  int32_t target = targets[targetIndex];
+  real loss = binaryLogistic(target, state, true, lr * cw_[target], backprop);
+
+  for (int32_t n = 0; n < neg_; n++) {
+    auto negativeTarget = getNegative(target, state.rng);
+    loss += binaryLogistic(negativeTarget, state, false, lr * cw_[negativeTarget], backprop);
+  }
+  return loss;
 }
 
 HierarchicalSoftmaxLoss::HierarchicalSoftmaxLoss(
