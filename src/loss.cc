@@ -9,6 +9,7 @@
 #include "utils.h"
 
 #include <cmath>
+#include <iostream>
 
 namespace fasttext {
 
@@ -348,12 +349,15 @@ WeightedSoftmaxLoss::WeightedSoftmaxLoss(std::shared_ptr<Matrix>& wo, std::share
   std::vector<int64_t> counts = dict->getCounts(entry_type::label);
   real sum = 0.0;
   for (int32_t i = 0; i < dict->nlabels(); ++i) {
-     cw_[i] =  real(dict->nlabels()) / real(counts[i]);
+     //cw_[i] =  real(dict->nlabels()) / real(counts[i]);
+     cw_[i] =  1.0 / real(counts[i]);
      sum += cw_[i];
   }
-  real normalizer = real(dict->nlabels()) / sum * real(dict->nlabels());
+  //real normalizer = real(dict->nlabels()) / sum * real(dict->nlabels());
   for (int32_t i = 0; i < dict->nlabels(); ++i) {
-     cw_[i] *= normalizer;
+     //cw_[i] *= normalizer;
+     cw_[i] /= sum;
+     cw_[i] *= dict->nlabels();
   }
 }
 

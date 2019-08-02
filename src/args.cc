@@ -50,8 +50,8 @@ std::string Args::lossToString(loss_name ln) const {
       return "hs";
     case loss_name::ns:
       return "ns";
-    case loss_name::wns:
-      return "wns";
+    case loss_name::wsoftmax:
+      return "wsoftmax";
     case loss_name::softmax:
       return "softmax";
     case loss_name::ova:
@@ -130,8 +130,8 @@ void Args::parseArgs(const std::vector<std::string>& args) {
           loss = loss_name::hs;
         } else if (args.at(ai + 1) == "ns") {
           loss = loss_name::ns;
-        } else if (args.at(ai + 1) == "wns") {
-          loss = loss_name::wns;
+        } else if (args.at(ai + 1) == "wsoftmax") {
+          loss = loss_name::wsoftmax;
         } else if (args.at(ai + 1) == "softmax") {
           loss = loss_name::softmax;
         } else if (
