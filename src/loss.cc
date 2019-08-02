@@ -188,33 +188,6 @@ int32_t NegativeSamplingLoss::getNegative(
   return negative;
 }
 
-WeightedNegativeSamplingLoss::WeightedNegativeSamplingLoss(
-    std::shared_ptr<Matrix>& wo,
-    std::vector<real> cw,
-    int neg,
-    const std::vector<int64_t>& targetCounts)
-    : NegativeSamplingLoss(wo, neg, targetCounts), cw_(cw) {
-    cw_.resize(targetCounts);
-    }
-
-real WeightedNegativeSamplingLoss::forward(
-    const std::vector<int32_t>& targets,
-    int32_t targetIndex,
-    Model::State& state,
-    real lr,
-    bool backprop) {
-  assert(targetIndex >= 0);
-  assert(targetIndex < targets.size());
-  int32_t target = targets[targetIndex];
-  real loss = binaryLogistic(target, state, true, lr * cw_[target], backprop);
-
-  for (int32_t n = 0; n < neg_; n++) {
-    auto negativeTarget = getNegative(target, state.rng);
-    loss += binaryLogistic(negativeTarget, state, false, lr * cw_[negativeTarget], backprop);
-  }
-  return loss;
-}
-
 HierarchicalSoftmaxLoss::HierarchicalSoftmaxLoss(
     std::shared_ptr<Matrix>& wo,
     const std::vector<int64_t>& targetCounts)
@@ -368,5 +341,33 @@ real SoftmaxLoss::forward(
   }
   return -log(state.output[target]);
 };
+
+WeightedSoftmaxLoss::WeightedSoftmaxLoss(std::shared_ptr<Matrix>& wo, std::vector<real>& cw) : SoftmaxLoss(wo), cw_(cw) {}
+
+WeightedSoftmaxLoss::WeightedSoftmaxLoss(std::shared_ptr<Matrix>& wo, std::shared_ptr<const Dictionary> dict) : SoftmaxLoss(wo), cw_(dict->nlabels()) {
+  std::vector<int64_t> counts = dict->getCounts(entry_type::label);
+  real sum = 0.0;
+  for (int32_t i = 0; i < dict->nlabels(); ++i) {
+     cw_[i] =  real(dict->nlabels()) / real(counts[i]);
+     sum += cw_[i];
+  }
+  real normalizer = real(dict->nlabels()) / sum * real(dict->nlabels());
+  for (int32_t i = 0; i < dict->nlabels(); ++i) {
+     cw_[i] *= normalizer;
+  }
+}
+
+
+real WeightedSoftmaxLoss::forward(
+    const std::vector<int32_t>& targets,
+    int32_t targetIndex,
+    Model::State& state,
+    real lr,
+    bool backprop) {
+  assert(targetIndex >= 0);
+  assert(targetIndex < targets.size());
+  int32_t target = targets[targetIndex];
+  return SoftmaxLoss::forward(targets, targetIndex, state, lr * cw_[target], backprop);
+}
 
 } // namespace fasttext

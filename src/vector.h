@@ -24,6 +24,7 @@ class Vector {
 
  public:
   explicit Vector(int64_t);
+  explicit Vector(std::vector<real>);
   Vector(const Vector&) = default;
   Vector(Vector&&) noexcept = default;
   Vector& operator=(const Vector&) = default;

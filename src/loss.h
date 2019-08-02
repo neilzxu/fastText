@@ -12,6 +12,7 @@
 #include <random>
 #include <vector>
 
+#include "dictionary.h"
 #include "matrix.h"
 #include "model.h"
 #include "real.h"
@@ -106,24 +107,6 @@ class NegativeSamplingLoss : public BinaryLogisticLoss {
       bool backprop) override;
 };
 
-class WeightedNegativeSamplingLoss: public NegativeSamplingLoss {
-  protected:
-    std::vector<real> cw_;
-  explicit WeightedNegativeSamplingLoss(
-      std::shared_ptr<Matrix>& wo,
-      std::vector<real> cw,
-      int neg,
-      const std::vector<int64_t>& targetCounts);
-  ~WeightedNegativeSamplingLoss() noexcept override = default;
-
-  real forward(
-      const std::vector<int32_t>& targets,
-      int32_t targetIndex,
-      Model::State& state,
-      real lr,
-      bool backprop) override;
-
-};
 
 class HierarchicalSoftmaxLoss : public BinaryLogisticLoss {
  protected:
@@ -177,6 +160,23 @@ class SoftmaxLoss : public Loss {
       real lr,
       bool backprop) override;
   void computeOutput(Model::State& state) const override;
+};
+
+class WeightedSoftmaxLoss: public SoftmaxLoss {
+ protected:
+  Vector cw_;
+
+ public:
+  explicit WeightedSoftmaxLoss(std::shared_ptr<Matrix>& wo, std::vector<real>& cw);
+  explicit WeightedSoftmaxLoss(std::shared_ptr<Matrix>& wo, std::shared_ptr<const Dictionary> dict);
+
+  ~WeightedSoftmaxLoss() noexcept override = default;
+  real forward(
+      const std::vector<int32_t>& targets,
+      int32_t targetIndex,
+      Model::State& state,
+      real lr,
+      bool backprop) override;
 };
 
 } // namespace fasttext

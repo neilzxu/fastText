@@ -19,6 +19,7 @@
 namespace fasttext {
 
 Vector::Vector(int64_t m) : data_(m) {}
+Vector::Vector(std::vector<real> v): data_(v) {}
 
 void Vector::zero() {
   std::fill(data_.begin(), data_.end(), 0.0);
